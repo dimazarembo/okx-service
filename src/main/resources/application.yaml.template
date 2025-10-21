@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: okx-service
+server:
+  port: 8084
