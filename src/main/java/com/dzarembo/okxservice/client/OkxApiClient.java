@@ -50,8 +50,10 @@ public class OkxApiClient {
             long nextFundingTimeUtc = Long.parseLong(item.getNextFundingTime());
             int intervalHours = computeIntervalHours(fundingTimeUtc, nextFundingTimeUtc);
 
-            // Используем fundingTime вместо nextFundingTime
-            log.info("OKX: {} rate={}, fundingTime(UTC)={}, nextFundingTime(UTC)={}, interval={}h",
+            // Using fundingTime instead of nextFundingTime because funding time is current period and nextFundingTime is
+            // period after current, but we need time when funding will apply. (For example on binance we need take nextFundingTime
+            // because there it means time current period when funding will apply)
+            log.debug("OKX: {} rate={}, fundingTime(UTC)={}, nextFundingTime(UTC)={}, interval={}h",
                     item.getInstId(), rate,
                     Instant.ofEpochMilli(fundingTimeUtc),
                     Instant.ofEpochMilli(nextFundingTimeUtc),

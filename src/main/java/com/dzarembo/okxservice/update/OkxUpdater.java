@@ -16,7 +16,7 @@ public class OkxUpdater {
     private final FundingCache cache;
     private final OkxApiClient apiClient;
 
-    @Scheduled(fixedRate = 5 * 60 * 1000) // обновление каждые 5 минут
+    @Scheduled(fixedRate = 1 * 60 * 1000) // обновление каждые 1 минут
     public void updateFundingRates() {
         log.info("Updating OKX funding cache...");
         cache.putAll(apiClient.fetchFundingRates());
