@@ -1,0 +1,17 @@
+version: '3.9'
+
+services:
+  okx-service:
+    image: dzarembo/okx-service:latest
+    container_name: okx-service
+    ports:
+      - "8084:8084"
+    environment:
+      SERVER_PORT: 8084
+      SPRING_PROFILES_ACTIVE: prod
+    restart: always
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8084/actuator/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
