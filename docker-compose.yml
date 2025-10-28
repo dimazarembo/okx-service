@@ -10,7 +10,7 @@ services:
       SERVER_PORT: 8084
     restart: always
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8081/actuator/health"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:8084/actuator/health"]
       interval: 20s
       timeout: 5s
       retries: 5
