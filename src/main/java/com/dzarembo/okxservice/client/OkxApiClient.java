@@ -9,6 +9,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Slf4j
@@ -33,8 +34,13 @@ public class OkxApiClient {
             }
 
             return response.getData().stream()
+                    // 1️⃣ фильтруем только USDT контракты
+                    .filter(item -> item.getInstId() != null && item.getInstId().contains("USDT"))
+                    // 2️⃣ исключаем USD контракты
+                    .filter(item -> !item.getInstId().contains("USD-SWAP") && !item.getInstId().contains("USD-"))
+                    // 3️⃣ мапим в FundingRate
                     .map(this::mapToFundingRate)
-                    .filter(fr -> fr != null)
+                    .filter(Objects::nonNull)
                     .toList();
 
         } catch (Exception e) {
@@ -50,21 +56,21 @@ public class OkxApiClient {
             long nextFundingTimeUtc = Long.parseLong(item.getNextFundingTime());
             int intervalHours = computeIntervalHours(fundingTimeUtc, nextFundingTimeUtc);
 
-            // Using fundingTime instead of nextFundingTime because funding time is current period and nextFundingTime is
-            // period after current, but we need time when funding will apply. (For example on binance we need take nextFundingTime
-            // because there it means time current period when funding will apply)
-            log.debug("OKX: {} rate={}, fundingTime(UTC)={}, nextFundingTime(UTC)={}, interval={}h",
-                    item.getInstId(), rate,
+            String normalizedSymbol = normalizeSymbol(item.getInstId());
+
+            log.debug("OKX: {} rate={} fundingTime(UTC)={} nextFundingTime(UTC)={} interval={}h",
+                    normalizedSymbol, rate,
                     Instant.ofEpochMilli(fundingTimeUtc),
                     Instant.ofEpochMilli(nextFundingTimeUtc),
                     intervalHours);
 
             return new FundingRate(
-                    normalizeSymbol(item.getInstId()),
+                    normalizedSymbol,
                     rate,
                     fundingTimeUtc,
                     intervalHours
             );
+
         } catch (Exception e) {
             log.error("Failed to parse OKX item: {}", item, e);
             return null;
@@ -77,6 +83,7 @@ public class OkxApiClient {
     }
 
     private String normalizeSymbol(String instId) {
+        // Пример: "BTC-USDT-SWAP" → "BTCUSDT"
         return instId.replace("-", "").replace("SWAP", "");
     }
 
